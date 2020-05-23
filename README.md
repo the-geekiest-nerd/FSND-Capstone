@@ -439,3 +439,15 @@ The API will return the following errors based on how the request fails:
 ```
   
 </details>
+
+## Testing
+For testing the backend, run the following commands (in the exact order):
+```
+dropdb capstone_test
+createdb capstone_test
+psql capstone_test < casting.sql
+python test.py
+```
+
+Alternate way: Create the db `capstone_test` using PgAdmin and copy the contents of casting.sql and paste them
+in Query tool in PgAdmin and create the db table with records. Then, run the command `python test.py`.

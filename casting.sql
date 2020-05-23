@@ -23,13 +23,6 @@ SET row_security = off;
 -- Name: capstone_test; Type: DATABASE; Schema: -; Owner: postgres
 --
 
-CREATE DATABASE capstone_test WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'English_India.1252' LC_CTYPE = 'English_India.1252';
-
-
-ALTER DATABASE capstone_test OWNER TO postgres;
-
-\connect capstone_test
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
