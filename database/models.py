@@ -119,6 +119,13 @@ class Actor(db.Model):
             "name": self.name
         }
 
+    def long(self):
+        return {
+            "name": self.name,
+            "full_name": self.full_name,
+            "date_of_birth": self.date_of_birth.strftime("%B %d, %Y")
+        }
+
     def full_info(self):
         return {
             "name": self.name,
