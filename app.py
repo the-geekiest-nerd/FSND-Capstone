@@ -2,6 +2,7 @@ from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from .database.models import db_drop_and_create_all, setup_db, Actor, Movie
+from .auth.auth import AuthError, requires_auth
 
 
 def create_app(test_config=None):
@@ -24,7 +25,8 @@ def create_app(test_config=None):
         return jsonify({'health': 'Running!!'}), 200
 
     @app.route('/actors')
-    def get_actors():
+    @requires_auth("get:actors")
+    def get_actors(payload):
         actors_query = Actor.query.order_by(Actor.id).all()
         actors = [actor.short() for actor in actors_query]
 
@@ -34,7 +36,8 @@ def create_app(test_config=None):
         }), 200
 
     @app.route('/actors/<int:actor_id>')
-    def get_actor_by_id(actor_id):
+    @requires_auth("get:actors-info")
+    def get_actor_by_id(payload, actor_id):
         actor = Actor.query.get_or_404(actor_id)
 
         return jsonify({
@@ -43,7 +46,8 @@ def create_app(test_config=None):
         }), 200
 
     @app.route('/actors', methods=['POST'])
-    def create_actor():
+    @requires_auth("post:actor")
+    def create_actor(payload):
         try:
             request_body = request.get_json()
             if 'name' not in request_body \
@@ -74,7 +78,8 @@ def create_app(test_config=None):
             abort(500)
 
     @app.route('/actors/<int:actor_id>', methods=['PATCH'])
-    def update_actor(actor_id):
+    @requires_auth("patch:actor")
+    def update_actor(payload, actor_id):
         actor = Actor.query.get_or_404(actor_id)
 
         try:
@@ -114,7 +119,8 @@ def create_app(test_config=None):
             abort(500)
 
     @app.route('/actors/<int:actor_id>', methods=['DELETE'])
-    def delete_actor(actor_id):
+    @requires_auth("delete:actor")
+    def delete_actor(payload, actor_id):
         actor = Actor.query.get_or_404(actor_id)
 
         try:
@@ -129,7 +135,8 @@ def create_app(test_config=None):
             abort(500)
 
     @app.route('/movies')
-    def get_movies():
+    @requires_auth("get:movies")
+    def get_movies(payload):
         movies_query = Movie.query.order_by(Movie.id).all()
         movies = [movie.short() for movie in movies_query]
 
@@ -139,7 +146,8 @@ def create_app(test_config=None):
         }), 200
 
     @app.route('/movies/<int:movie_id>')
-    def get_movie_by_id(movie_id):
+    @requires_auth("get:movies-info")
+    def get_movie_by_id(payload, movie_id):
         movie = Movie.query.get_or_404(movie_id)
 
         return jsonify({
@@ -148,7 +156,8 @@ def create_app(test_config=None):
         }), 200
 
     @app.route('/movies', methods=['POST'])
-    def create_movie():
+    @requires_auth("post:movie")
+    def create_movie(payload):
         try:
             request_body = request.get_json()
 
@@ -194,7 +203,8 @@ def create_app(test_config=None):
             abort(500)
 
     @app.route('/movies/<int:movie_id>', methods=['PATCH'])
-    def update_movie(movie_id):
+    @requires_auth("patch:movie")
+    def update_movie(payload, movie_id):
         movie = Movie.query.get_or_404(movie_id)
 
         try:
@@ -253,7 +263,8 @@ def create_app(test_config=None):
             abort(500)
 
     @app.route('/movies/<int:movie_id>', methods=['DELETE'])
-    def delete_movie(movie_id):
+    @requires_auth("delete:movie")
+    def delete_movie(payload, movie_id):
         movie = Movie.query.get_or_404(movie_id)
 
         try:
@@ -268,6 +279,8 @@ def create_app(test_config=None):
             abort(500)
 
     @app.errorhandler(400)
+    @app.errorhandler(401)
+    @app.errorhandler(403)
     @app.errorhandler(404)
     @app.errorhandler(405)
     @app.errorhandler(422)
