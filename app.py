@@ -1,8 +1,8 @@
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-from .database.models import db_drop_and_create_all, setup_db, Actor, Movie
-from .auth.auth import AuthError, requires_auth
+from database.models import db_drop_and_create_all, setup_db, Actor, Movie
+from auth.auth import AuthError, requires_auth
 
 
 def create_app(test_config=None):
@@ -295,4 +295,4 @@ def create_app(test_config=None):
     return app
 
 
-flask_app = create_app()
+app = create_app()
