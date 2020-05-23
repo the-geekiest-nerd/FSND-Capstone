@@ -293,3 +293,6 @@ def create_app(test_config=None):
         }), error.code
 
     return app
+
+
+flask_app = create_app()
