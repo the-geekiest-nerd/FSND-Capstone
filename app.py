@@ -128,6 +128,145 @@ def create_app(test_config=None):
         except Exception:
             abort(500)
 
+    @app.route('/movies')
+    def get_movies():
+        movies_query = Movie.query.order_by(Movie.id).all()
+        movies = [movie.short() for movie in movies_query]
+
+        return jsonify({
+            "success": True,
+            "movies": movies
+        }), 200
+
+    @app.route('/movies/<int:movie_id>')
+    def get_movie_by_id(movie_id):
+        movie = Movie.query.get_or_404(movie_id)
+
+        return jsonify({
+            "success": True,
+            "movie": movie.full_info()
+        }), 200
+
+    @app.route('/movies', methods=['POST'])
+    def create_movie():
+        try:
+            request_body = request.get_json()
+
+            if 'title' not in request_body \
+                    or 'release_year' not in request_body \
+                    or 'duration' not in request_body \
+                    or 'imdb_rating' not in request_body \
+                    or 'cast' not in request_body:
+                raise KeyError
+
+            if request_body['title'] == '' \
+                    or request_body['release_year'] <= 0 \
+                    or request_body['duration'] <= 0 \
+                    or request_body['imdb_rating'] < 0 \
+                    or request_body["imdb_rating"] > 10 \
+                    or len(request_body["cast"]) == 0:
+                raise TypeError
+
+            new_movie = Movie(
+                request_body['title'],
+                request_body['release_year'],
+                request_body['duration'],
+                request_body['imdb_rating']
+            )
+            actors = Actor.query.filter(
+                Actor.name.in_(request_body["cast"])).all()
+
+            if len(request_body["cast"]) == len(actors):
+                new_movie.cast = actors
+                new_movie.insert()
+            else:
+                raise ValueError
+
+            return jsonify({
+                "success": True,
+                "created_movie_id": new_movie.id
+            }), 201
+
+        except (TypeError, KeyError, ValueError):
+            abort(422)
+
+        except Exception:
+            abort(500)
+
+    @app.route('/movies/<int:movie_id>', methods=['PATCH'])
+    def update_movie(movie_id):
+        movie = Movie.query.get_or_404(movie_id)
+
+        try:
+            request_body = request.get_json()
+            if not bool(request_body):
+                raise TypeError
+
+            if "title" in request_body:
+                if request_body["title"] == "":
+                    raise ValueError
+
+                movie.title = request_body["title"]
+
+            if "release_year" in request_body:
+                if request_body["release_year"] <= 0:
+                    raise ValueError
+
+                movie.release_year = request_body["release_year"]
+
+            if "duration" in request_body:
+                if request_body["duration"] <= 0:
+                    raise ValueError
+
+                movie.duration = request_body["duration"]
+
+            if "imdb_rating" in request_body:
+                if request_body["imdb_rating"] < 0 \
+                        or request_body["imdb_rating"] > 10:
+                    raise ValueError
+
+                movie.imdb_rating = request_body["imdb_rating"]
+
+            if "cast" in request_body:
+                if len(request_body["cast"]) == 0:
+                    raise ValueError
+
+                actors = Actor.query.filter(
+                    Actor.name.in_(request_body["cast"])).all()
+
+                if len(request_body["cast"]) == len(actors):
+                    movie.cast = actors
+                else:
+                    raise ValueError
+
+            movie.update()
+
+            return jsonify({
+                "success": True,
+                "movie_info": movie.long()
+            }), 200
+
+        except (TypeError, ValueError, KeyError):
+            abort(422)
+
+        except Exception:
+            abort(500)
+
+    @app.route('/movies/<int:movie_id>', methods=['DELETE'])
+    def delete_movie(movie_id):
+        movie = Movie.query.get_or_404(movie_id)
+
+        try:
+            movie.delete()
+
+            return jsonify({
+                "success": True,
+                "deleted_movie_id": movie.id
+            }), 200
+
+        except Exception:
+            abort(500)
+
     @app.errorhandler(400)
     @app.errorhandler(404)
     @app.errorhandler(405)
